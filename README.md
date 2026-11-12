@@ -41,7 +41,7 @@ Files that cannot be read are reported separately rather than silently skipped.
 ## Installing
 
 Builds for macOS, Linux (`.deb` / `.rpm`) and Windows (`.msi` / `.exe`) are published
-on the [releases page](https://github.com/wlaith/akhtabooti-desktop/releases).
+on the [releases page](https://github.com/jordanopensource/akhtabooti-desktop/releases).
 
 ## Building from source
 

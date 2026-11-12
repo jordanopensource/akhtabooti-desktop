@@ -7,12 +7,12 @@
   "author": "Jordan Open Source Association (JOSA)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wlaith/akhtabooti-desktop.git"
+    "url": "git+https://github.com/jordanopensource/akhtabooti-desktop.git"
   },
   "bugs": {
-    "url": "https://github.com/wlaith/akhtabooti-desktop/issues"
+    "url": "https://github.com/jordanopensource/akhtabooti-desktop/issues"
   },
-  "homepage": "https://github.com/wlaith/akhtabooti-desktop#readme",
+  "homepage": "https://github.com/jordanopensource/akhtabooti-desktop#readme",
   "type": "module",
   "engines": {
     "node": ">=20"

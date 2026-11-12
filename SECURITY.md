@@ -9,7 +9,7 @@ We take security reports seriously and will work with you to resolve them.
 
 Report it privately through GitHub's private vulnerability reporting:
 
-1. Go to the [Security tab](https://github.com/wlaith/akhtabooti-desktop/security)
+1. Go to the [Security tab](https://github.com/jordanopensource/akhtabooti-desktop/security)
 2. Select **Report a vulnerability**
 
 This creates a private advisory visible only to you and the maintainers.

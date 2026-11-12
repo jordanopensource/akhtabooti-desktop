@@ -8,7 +8,7 @@ import Icon from "../icon/Icon.vue";
 defineEmits<{ (e: "close"): void }>();
 const { t } = useI18n();
 
-const ISSUES_URL = "https://github.com/wlaith/akhtabooti-desktop/issues";
+const ISSUES_URL = "https://github.com/jordanopensource/akhtabooti-desktop/issues";
 
 const version = ref("");
 
