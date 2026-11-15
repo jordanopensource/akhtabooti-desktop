@@ -1,0 +1,16 @@
+# Run the workflow on any commit, or any pull request that merges into main
+when:
+  - event: push
+  - event: pull_request
+    evaluate: 'CI_COMMIT_TARGET_BRANCH in ["main", "development"]'
+
+steps:
+  - name: run-pre-commit-hooks
+    image: registry.cloud.josa.ngo/library/pre-commit-runner
+    settings:
+      args: "--all-files"
+      skip: "gitleaks"
+  - name: detect-leaked-secrets
+    image: zricethezav/gitleaks:v8.30.1
+    commands:
+      - gitleaks dir . --verbose --redact
