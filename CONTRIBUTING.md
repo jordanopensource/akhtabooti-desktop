@@ -26,6 +26,14 @@ npm run tauri dev
 The first build compiles a native Apache Tika library through GraalVM and takes
 a long time. Later builds reuse it.
 
+Install the [pre-commit](https://pre-commit.com) hooks once after cloning. They
+check for leaked secrets (gitleaks), lint, and commit message format:
+
+```sh
+brew install pre-commit        # or: pipx install pre-commit
+pre-commit install --install-hooks
+```
+
 ## Making a change
 
 1. Branch from `development`.
