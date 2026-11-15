@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::{env, fs};
 
 // Forces akhtabooti-core's extractous/GraalVM build to finish before this runs.
@@ -44,19 +44,28 @@ fn stage_tika_lib() {
 }
 
 fn find_tika_lib(lib_name: &str) -> Option<PathBuf> {
-    // Our OUT_DIR is a sibling of extractous's, two levels up under build/.
     let out_dir = PathBuf::from(env::var("OUT_DIR").ok()?);
-    let build_dir = out_dir.parent()?.parent()?;
+    let build_dir = out_dir
+        .ancestors()
+        .find(|p| p.file_name() == Some("build".as_ref()))?;
 
-    fs::read_dir(build_dir)
-        .ok()?
-        .filter_map(Result::ok)
-        .map(|e| e.path())
-        .filter(|p| {
-            p.file_name()
-                .and_then(|n| n.to_str())
-                .is_some_and(|n| n.starts_with("extractous-"))
-        })
+    let entries = |dir: &Path| -> Vec<PathBuf> {
+        fs::read_dir(dir)
+            .map(|rd| rd.filter_map(Result::ok).map(|e| e.path()).collect())
+            .unwrap_or_default()
+    };
+
+    let mut units = Vec::new();
+    for p in entries(build_dir) {
+        match p.file_name().and_then(|n| n.to_str()) {
+            Some(n) if n.starts_with("extractous-") => units.push(p),
+            Some("extractous") => units.extend(entries(&p)),
+            _ => {}
+        }
+    }
+
+    units
+        .into_iter()
         .map(|p| p.join("out").join("libs").join(lib_name))
         .find(|p| p.exists())
 }
