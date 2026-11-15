@@ -13,4 +13,4 @@ steps:
   - name: detect-leaked-secrets
     image: zricethezav/gitleaks:v8.30.1
     commands:
-      - gitleaks dir . --verbose --redact --baseline-path .gitleaks-secrets-baseline.json
+      - gitleaks dir . --verbose --redact
