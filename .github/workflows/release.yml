@@ -64,10 +64,16 @@ jobs:
           node-version: lts/*
           cache: npm
 
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - shell: bash
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+      - uses: actions/cache@v6
         with:
-          workspaces: src-tauri
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: rust-${{ matrix.platform }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: rust-${{ matrix.platform }}-
 
       - if: matrix.platform == 'ubuntu-22.04'
         run: |
@@ -127,7 +133,7 @@ jobs:
           sha256sum * > SHA256SUMS
           cat SHA256SUMS
 
-      - uses: actions/attest-build-provenance@v2
+      - uses: actions/attest-build-provenance@v4
         with:
           subject-path: release-assets/*
 
