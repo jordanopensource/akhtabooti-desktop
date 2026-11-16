@@ -47,7 +47,7 @@ pub fn run() {
         .setup(|app| {
             // akhtabooti-core loads its OCR models from this folder.
             let models_dir = app.path().resource_dir()?.join("models");
-            std::env::set_var("AKHTABOOTI_MODELS_DIR", models_dir);
+            std::env::set_var("AKHTABOOTI_MODELS_DIR", dunce::simplified(&models_dir));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![scan_path, export_report])

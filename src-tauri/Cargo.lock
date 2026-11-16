@@ -60,6 +60,7 @@ name = "akhtabooti"
 version = "0.1.2"
 dependencies = [
  "akhtabooti-core",
+ "dunce",
  "serde",
  "serde_json",
  "tauri",
