@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  # Builds from any branch without releasing; installers are kept as workflow artifacts.
   workflow_dispatch:
 
 permissions:
@@ -105,8 +106,8 @@ jobs:
           # "-" is ad-hoc signing on macOS; the other platforms ignore it.
           APPLE_SIGNING_IDENTITY: ${{ matrix.platform == 'macos-latest' && '-' || '' }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: Akhtabooti ${{ github.ref_name }}
+          tagName: ${{ github.event_name == 'push' && github.ref_name || '' }}
+          releaseName: ${{ github.event_name == 'push' && format('Akhtabooti {0}', github.ref_name) || '' }}
           releaseDraft: true
           prerelease: false
           uploadWorkflowArtifacts: true
@@ -123,8 +124,8 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: Akhtabooti ${{ github.ref_name }}
+          tagName: ${{ github.event_name == 'push' && github.ref_name || '' }}
+          releaseName: ${{ github.event_name == 'push' && format('Akhtabooti {0}', github.ref_name) || '' }}
           releaseDraft: true
           prerelease: false
           uploadWorkflowArtifacts: true
@@ -138,6 +139,8 @@ jobs:
         run: sh src-tauri/scripts/verify-macos-bundle.sh src-tauri/target/release/bundle/macos/Akhtabooti.app
 
   provenance:
+    # Manual runs have no release to attest.
+    if: github.event_name == 'push'
     needs: publish-tauri
     runs-on: ubuntu-latest
     timeout-minutes: 15
