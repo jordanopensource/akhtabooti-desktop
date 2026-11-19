@@ -16,10 +16,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # macOS disabled until the APPLE_* signing secrets are configured.
-          # Uncomment to re-enable; the macOS-only steps below are gated on it.
-          # - platform: macos-latest
-          #   args: -- --locked
+          # Signed and notarized when the APPLE_* secrets are set, ad-hoc signed otherwise.
+          - platform: macos-latest
+            args: -- --locked
           - platform: ubuntu-22.04
             args: --bundles deb,rpm -- --locked
           - platform: windows-latest
@@ -35,7 +34,10 @@ jobs:
       NATIVE_IMAGE_OPTIONS: -H:DeadlockWatchdogInterval=0
     steps:
       - uses: actions/checkout@v7
+      # All six secrets set: sign and notarize. None set: ad-hoc sign and warn.
+      # Some set: fail, since that's a half-finished setup, not a choice.
       - name: Check Apple signing secrets
+        id: signing
         if: matrix.platform == 'macos-latest'
         shell: bash
         env:
@@ -51,13 +53,18 @@ jobs:
                       APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID; do
             [ -n "${!name}" ] || missing+=("$name")
           done
-          if [ ${#missing[@]} -gt 0 ]; then
+          if [ ${#missing[@]} -eq 0 ]; then
+            echo "All Apple signing secrets are set."
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          elif [ ${#missing[@]} -eq 6 ]; then
+            echo "::warning title=Unsigned macOS build::No Apple signing secrets are set; the macOS bundle will be ad-hoc signed and not notarized. Users will have to approve it in System Settings > Privacy & Security."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+          else
             for name in "${missing[@]}"; do
-              echo "::error title=Missing secret::$name is not set; the macOS bundle cannot be signed and notarized."
+              echo "::error title=Missing secret::$name is not set; set all six APPLE_* secrets or none."
             done
             exit 1
           fi
-          echo "All Apple signing secrets are set."
 
       - uses: actions/setup-node@v7
         with:
@@ -89,7 +96,24 @@ jobs:
         working-directory: src-tauri
         run: cargo build --release --locked -p extractous
 
+      # Two copies because an APPLE_* variable that is set but empty still makes
+      # Tauri try to sign with it, so the unsigned build must not set them at all.
       - uses: tauri-apps/tauri-action@v1
+        if: steps.signing.outputs.signed != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # "-" is ad-hoc signing on macOS; the other platforms ignore it.
+          APPLE_SIGNING_IDENTITY: ${{ matrix.platform == 'macos-latest' && '-' || '' }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: Akhtabooti ${{ github.ref_name }}
+          releaseDraft: true
+          prerelease: false
+          uploadWorkflowArtifacts: true
+          args: ${{ matrix.args }}
+
+      - uses: tauri-apps/tauri-action@v1
+        if: steps.signing.outputs.signed == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
@@ -107,8 +131,11 @@ jobs:
           args: ${{ matrix.args }}
 
       # Catches builds that run here but die at launch on any other Mac.
+      # The ad-hoc build skips the notarization and Gatekeeper checks it can't pass.
       - if: matrix.platform == 'macos-latest'
-        run: sh src-tauri/scripts/verify-macos-bundle.sh
+        env:
+          UNSIGNED: ${{ steps.signing.outputs.signed != 'true' && '1' || '' }}
+        run: sh src-tauri/scripts/verify-macos-bundle.sh src-tauri/target/release/bundle/macos/Akhtabooti.app
 
   provenance:
     needs: publish-tauri
