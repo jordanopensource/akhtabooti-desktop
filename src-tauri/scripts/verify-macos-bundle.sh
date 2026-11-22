@@ -4,6 +4,7 @@
 # signing mistakes that make macOS report the app as damaged.
 #
 # Usage: verify-macos-bundle.sh [path/to/App.app]
+# Set UNSIGNED=1 for an ad-hoc build to skip the notarization and Gatekeeper checks.
 
 set -e
 
@@ -102,6 +103,9 @@ else
 fi
 rm -f "$launch_log"
 
+if [ -n "$UNSIGNED" ]; then
+    echo "[6-7] skipped: UNSIGNED is set (ad-hoc build, not notarized)"
+else
 echo "[6] notarization ticket is stapled"
 if xcrun stapler validate "$APP" >/dev/null 2>&1; then
     note "ok - notarization ticket stapled"
@@ -116,6 +120,7 @@ case "$assessment" in
     *accepted*) note "ok - $(echo "$assessment" | grep -i 'source=' | head -1)" ;;
     *) bad "Gatekeeper rejects this bundle: $(echo "$assessment" | head -1)" ;;
 esac
+fi
 
 if [ "$fail" -ne 0 ]; then
     echo "verify-macos-bundle: FAILED, this build will not run for your users" >&2
