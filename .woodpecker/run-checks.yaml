@@ -2,7 +2,7 @@
 when:
   - event: pull_request
     evaluate: 'CI_COMMIT_TARGET_BRANCH in ["main", "development"]'
-  - event: pull_request
+  - event: push
     branch: main
 steps:
   - name: run-pre-commit-hooks
