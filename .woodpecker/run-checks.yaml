@@ -1,9 +1,9 @@
 # Run the workflow on any commit, or any pull request that merges into main
 when:
-  - event: push
   - event: pull_request
     evaluate: 'CI_COMMIT_TARGET_BRANCH in ["main", "development"]'
-
+  - event: pull_request
+    branch: main
 steps:
   - name: run-pre-commit-hooks
     image: registry.cloud.josa.ngo/library/pre-commit-runner
